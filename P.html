@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雙層幸運轉盤</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* 轉盤容器樣式 */
+        .wheel-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 640px) {
+            .wheel-container {
+                width: 450px;
+                height: 450px;
+            }
+        }
+
+        /* 畫布絕對定位，確保層疊 */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transition: transform 0s; /* JS控制旋轉，預設無CSS過渡 */
+        }
+
+        /* 外圈畫布 */
+        #canvas-outer {
+            z-index: 10;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        }
+
+        /* 內圈畫布 (比外圈小) */
+        #canvas-inner {
+            z-index: 20;
+            transform: scale(0.6); /* 內圈縮小 */
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+        }
+
+        /* 指針 */
+        .pointer {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; 
+            height: 0; 
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 25px solid #ef4444; /* 紅色指針 */
+            z-index: 40;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+        }
+
+        /* 中心按鈕 */
+        .center-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #fbbf24, #d97706);
+            border: 4px solid #fff;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 50;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            user-select: none;
+        }
+
+        .center-btn:active {
+            transform: translate(-50%, -50%) scale(0.95);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .center-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        /* 結果彈窗動畫 */
+        .pop-in {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* 自定義捲軸 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center py-8 px-4">
+
+    <div class="max-w-6xl w-full bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col lg:flex-row">
+        
+        <!-- 左側：轉盤顯示區 -->
+        <div class="w-full lg:w-7/12 bg-indigo-50 p-6 flex flex-col items-center justify-center relative min-h-[400px] lg:min-h-[600px]">
+            <h2 class="text-2xl font-bold text-indigo-800 mb-6 tracking-wide">雙層命運轉盤</h2>
+            
+            <div class="wheel-container">
+                <!-- 指針 -->
+                <div class="pointer"></div>
+                
+                <!-- 外圈 -->
+                <canvas id="canvas-outer"></canvas>
+                
+                <!-- 內圈 (CSS控制縮放) -->
+                <canvas id="canvas-inner"></canvas>
+                
+                <!-- 中心按鈕 -->
+                <button id="spin-btn" class="center-btn" onclick="startSpin()">
+                    GO
+                </button>
+            </div>
+
+            <!-- 左側簡單提示狀態 -->
+            <div id="status-display" class="mt-8 text-center h-8">
+                <p class="text-gray-500 italic text-sm">按下 GO 開始抽籤 (1.5秒)</p>
+            </div>
+        </div>
+
+        <!-- 右側：控制與結果區 -->
+        <div class="w-full lg:w-5/12 p-6 flex flex-col gap-4 border-l border-gray-100 max-h-[800px] overflow-hidden">
+            
+            <!-- 1. 功能設定 -->
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="font-bold text-gray-800">⚙️ 設定</h3>
+                    <button onclick="resetData()" class="text-xs text-gray-500 hover:text-red-500 underline">重置所有內容</button>
+                </div>
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" id="no-repeat-toggle" class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300">
+                    <span class="text-gray-700 font-medium">開啟不重複抽籤</span>
+                    <span class="text-xs text-gray-400 ml-auto">(抽中後自動刪除選項)</span>
+                </label>
+            </div>
+
+            <!-- 2. 抽籤結果顯示區 (新增) -->
+            <div class="flex-1 min-h-[120px] bg-indigo-50 rounded-lg border border-indigo-100 p-4 flex flex-col">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-indigo-800 flex items-center gap-2">
+                        📜 抽籤紀錄
+                    </h3>
+                    <button onclick="clearHistory()" class="text-xs text-indigo-400 hover:text-indigo-600">清除紀錄</button>
+                </div>
+                <div id="history-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+                    <div class="text-center text-gray-400 text-sm py-4">尚未開始抽籤</div>
+                </div>
+            </div>
+
+            <!-- 3. 輸入區塊 (並排或上下) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4 h-auto lg:h-[300px]">
+                <!-- 內圈輸入 -->
+                <div class="flex flex-col h-full">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                        <h3 class="text-sm font-bold text-gray-700">內圈 (順時針)</h3>
+                    </div>
+                    <textarea id="input-inner" class="flex-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none resize-none bg-white text-sm" placeholder="輸入選項..."></textarea>
+                </div>
+
+                <!-- 外圈輸入 -->
+                <div class="flex flex-col h-full">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="w-3 h-3 rounded-full bg-orange-500"></span>
+                        <h3 class="text-sm font-bold text-gray-700">外圈 (逆時針)</h3>
+                    </div>
+                    <textarea id="input-outer" class="flex-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent outline-none resize-none bg-white text-sm" placeholder="輸入選項..."></textarea>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 結果彈窗 -->
+    <div id="modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 text-center transform shadow-2xl pop-in">
+            <div class="text-4xl mb-4">🎉</div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">抽籤結果</h3>
+            <div class="py-4 border-t border-b border-gray-100 my-4 space-y-2">
+                <p class="text-blue-600 font-bold text-xl" id="modal-inner-result">內圈：???</p>
+                <p class="text-orange-600 font-bold text-xl" id="modal-outer-result">外圈：???</p>
+            </div>
+            <button onclick="closeModal()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition-colors">
+                太棒了
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 設定與變數 ---
+        const canvasOuter = document.getElementById('canvas-outer');
+        const ctxOuter = canvasOuter.getContext('2d');
+        const canvasInner = document.getElementById('canvas-inner');
+        const ctxInner = canvasInner.getContext('2d');
+
+        const inputInner = document.getElementById('input-inner');
+        const inputOuter = document.getElementById('input-outer');
+        const btnSpin = document.getElementById('spin-btn');
+        const statusDisplay = document.getElementById('status-display');
+        const historyList = document.getElementById('history-list');
+        const noRepeatToggle = document.getElementById('no-repeat-toggle');
+        const modal = document.getElementById('modal');
+
+        // 配色方案
+        const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#F1948A'];
+
+        // 預設資料
+        const defaultInner = "大吉\n中吉\n小吉\n末吉\n平\n凶";
+        const defaultOuter = "獲得100元\n獲得500元\n銘謝惠顧\n再來一次\n飲料一杯\n請客一次";
+
+        // 狀態變數
+        let innerItems = [];
+        let outerItems = [];
+        let isSpinning = false;
+        
+        // 旋轉角度 (累積值)
+        let rotationInner = 0;
+        let rotationOuter = 0;
+
+        // --- 初始化 ---
+        function init() {
+            setupCanvas(canvasOuter);
+            setupCanvas(canvasInner);
+            
+            // 載入預設值
+            inputInner.value = defaultInner;
+            inputOuter.value = defaultOuter;
+
+            // 綁定事件
+            inputInner.addEventListener('input', updateWheels);
+            inputOuter.addEventListener('input', updateWheels);
+
+            updateWheels();
+        }
+
+        function setupCanvas(canvas) {
+            const size = 500;
+            canvas.width = size;
+            canvas.height = size;
+        }
+
+        function resetData() {
+            if(isSpinning) return;
+            if(confirm("確定要重置內容並清除紀錄嗎？")) {
+                inputInner.value = defaultInner;
+                inputOuter.value = defaultOuter;
+                clearHistory();
+                updateWheels();
+            }
+        }
+
+        function updateWheels() {
+            innerItems = inputInner.value.split('\n').filter(item => item.trim() !== '');
+            outerItems = inputOuter.value.split('\n').filter(item => item.trim() !== '');
+
+            // 處理空值顯示
+            const displayInner = innerItems.length > 0 ? innerItems : ['請輸入'];
+            const displayOuter = outerItems.length > 0 ? outerItems : ['請輸入'];
+
+            drawWheel(ctxInner, displayInner, 250);
+            drawWheel(ctxOuter, displayOuter, 250);
+        }
+
+        function drawWheel(ctx, items, radius) {
+            const cx = ctx.canvas.width / 2;
+            const cy = ctx.canvas.height / 2;
+            const arc = (2 * Math.PI) / items.length;
+
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+            items.forEach((item, index) => {
+                const angle = index * arc - Math.PI / 2; 
+
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, radius, angle, angle + arc);
+                ctx.fillStyle = colors[index % colors.length];
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(angle + arc / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = "#fff";
+                ctx.font = "bold 24px 'Noto Sans TC'";
+                ctx.shadowColor = "rgba(0,0,0,0.5)";
+                ctx.shadowBlur = 4;
+                ctx.fillText(item, radius - 30, 10);
+                ctx.restore();
+            });
+        }
+
+        // --- 抽籤動畫邏輯 ---
+        function startSpin() {
+            if (isSpinning) return;
+
+            // 檢查是否有足夠選項
+            if(innerItems.length === 0 || outerItems.length === 0) {
+                alert("請先在右側輸入內圈和外圈的選項！");
+                return;
+            }
+
+            isSpinning = true;
+            btnSpin.disabled = true;
+            statusDisplay.innerHTML = '<p class="text-blue-500 font-bold animate-pulse">命運轉動中...</p>';
+
+            // 時間設定：1.5秒
+            const minSpins = 3; // 稍微減少圈數配合短時間
+            const duration = 1500; // ms
+
+            const randomDegInner = Math.random() * 360;
+            const randomDegOuter = Math.random() * 360;
+
+            const targetInner = rotationInner + (minSpins * 360) + randomDegInner;
+            const targetOuter = rotationOuter - ((minSpins * 360) + randomDegOuter);
+
+            const startTime = performance.now();
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                if (elapsed < duration) {
+                    const progress = 1 - Math.pow(1 - (elapsed / duration), 4);
+
+                    const currentRotInner = rotationInner + (targetInner - rotationInner) * progress;
+                    const currentRotOuter = rotationOuter + (targetOuter - rotationOuter) * progress;
+
+                    canvasInner.style.transform = `scale(0.6) rotate(${currentRotInner}deg)`;
+                    canvasOuter.style.transform = `rotate(${currentRotOuter}deg)`;
+
+                    requestAnimationFrame(animate);
+                } else {
+                    // 動畫結束
+                    rotationInner = targetInner % 360;
+                    rotationOuter = targetOuter % 360;
+                    
+                    canvasInner.style.transform = `scale(0.6) rotate(${targetInner}deg)`;
+                    canvasOuter.style.transform = `rotate(${targetOuter}deg)`;
+
+                    isSpinning = false;
+                    btnSpin.disabled = false;
+                    statusDisplay.innerHTML = '<p class="text-gray-500 italic text-sm">按下 GO 開始抽籤 (1.5秒)</p>';
+
+                    // 計算結果
+                    const innerResult = getWinner(targetInner, innerItems.length, innerItems, true);
+                    const outerResult = getWinner(targetOuter, outerItems.length, outerItems, false);
+
+                    handleResult(innerResult, outerResult);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        function getWinner(finalAngle, count, items, isClockwise) {
+            const sliceDeg = 360 / count;
+            let normalizedDeg = finalAngle % 360; 
+            if (normalizedDeg < 0) normalizedDeg += 360;
+
+            let pointerIndexAngle;
+            if (isClockwise) {
+                pointerIndexAngle = 360 - normalizedDeg;
+            } else {
+                pointerIndexAngle = (360 - normalizedDeg) % 360;
+            }
+            
+            pointerIndexAngle = (pointerIndexAngle + 360) % 360;
+            const index = Math.floor(pointerIndexAngle / sliceDeg);
+            
+            return items[index % items.length];
+        }
+
+        function handleResult(inner, outer) {
+            // 1. 顯示彈窗
+            document.getElementById('modal-inner-result').textContent = `內圈：${inner}`;
+            document.getElementById('modal-outer-result').textContent = `外圈：${outer}`;
+            modal.classList.remove('hidden');
+
+            // 2. 新增到右側歷史紀錄
+            addHistory(inner, outer);
+
+            // 3. 如果開啟不重複模式，刪除選項
+            if (noRepeatToggle.checked) {
+                removeOption(inputInner, inner);
+                removeOption(inputOuter, outer);
+                // 重繪轉盤
+                updateWheels(); 
+            }
+        }
+
+        // 移除選項工具函式
+        function removeOption(inputElement, textToRemove) {
+            let lines = inputElement.value.split('\n').filter(l => l.trim() !== '');
+            // 找到第一個符合的刪除
+            const index = lines.indexOf(textToRemove);
+            if (index !== -1) {
+                lines.splice(index, 1);
+                inputElement.value = lines.join('\n');
+            }
+        }
+
+        // 歷史紀錄相關
+        function addHistory(inner, outer) {
+            // 移除預設文字
+            const emptyMsg = historyList.querySelector('.text-center');
+            if(emptyMsg) emptyMsg.remove();
+
+            const div = document.createElement('div');
+            div.className = "flex justify-between items-center bg-white p-3 rounded-md shadow-sm border border-gray-100 animate-pulse";
+            // 動畫移除
+            setTimeout(() => div.classList.remove('animate-pulse'), 1000);
+
+            // 取得現在時間 HH:MM:SS
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+
+            div.innerHTML = `
+                <div class="flex items-center gap-2 text-sm font-bold flex-1">
+                    <span class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded">${inner}</span>
+                    <span class="text-gray-300">/</span>
+                    <span class="text-orange-600 bg-orange-50 px-2 py-0.5 rounded">${outer}</span>
+                </div>
+                <span class="text-xs text-gray-400 font-mono">${timeStr}</span>
+            `;
+            
+            // 新的最上面
+            historyList.prepend(div);
+        }
+
+        function clearHistory() {
+            historyList.innerHTML = '<div class="text-center text-gray-400 text-sm py-4">尚未開始抽籤</div>';
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+        }
+
+        // 啟動
+        init();
+
+    </script>
+</body>
+</html>
