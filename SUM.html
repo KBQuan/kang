@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>羽球計分板</title>
+    <style>
+        :root {
+            --left-color: #3498db; /* 左邊藍色 */
+            --right-color: #e74c3c; /* 右邊紅色 */
+            --bg-color: #f4f4f9;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden; /* 防止滾動 */
+        }
+
+        /* 頂部設定區 */
+        .header {
+            width: 100%;
+            padding: 15px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        select {
+            padding: 8px 15px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        /* 計分板主區域 */
+        .scoreboard {
+            display: flex;
+            flex: 1;
+            width: 100%;
+        }
+
+        .side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+            user-select: none; /* 防止點擊時選取文字 */
+        }
+
+        /* 左邊樣式 */
+        .side.left {
+            background-color: white;
+            border-right: 1px solid #ddd;
+            color: var(--left-color);
+        }
+        .side.left:active {
+            background-color: #f0f8ff;
+        }
+
+        /* 右邊樣式 */
+        .side.right {
+            background-color: white;
+            border-left: 1px solid #ddd;
+            color: var(--right-color);
+        }
+        .side.right:active {
+            background-color: #fff0f0;
+        }
+
+        .player-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+
+        .score {
+            font-size: 10rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        /* 當獲勝時的樣式 */
+        .winner {
+            background-color: #ffe600 !important;
+            color: #000 !important;
+        }
+
+        /* 扣分按鈕 (防止誤觸) */
+        .minus-btn {
+            margin-top: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            background: transparent;
+            color: inherit;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0.3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .minus-btn:hover {
+            opacity: 1;
+        }
+
+        /* 底部重置區 */
+        .footer {
+            padding: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            background: white;
+        }
+
+        .reset-btn {
+            padding: 12px 40px;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        
+        .reset-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 600px) {
+            .score { font-size: 6rem; }
+            .player-name { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <label for="gameMode">賽制設定：</label>
+        <select id="gameMode" onchange="resetGame()">
+            <option value="11">11 分制</option>
+            <option value="21" selected>21 分制</option>
+        </select>
+    </div>
+
+    <div class="scoreboard">
+        <div class="side left" id="sideLeft" onclick="addScore('left')">
+            <div class="player-name">LEFT</div>
+            <div class="score" id="scoreLeft">0</div>
+            <button class="minus-btn" onclick="minusScore(event, 'left')">-</button>
+        </div>
+
+        <div class="side right" id="sideRight" onclick="addScore('right')">
+            <div class="player-name">RIGHT</div>
+            <div class="score" id="scoreRight">0</div>
+            <button class="minus-btn" onclick="minusScore(event, 'right')">-</button>
+        </div>
+    </div>
+
+    <div class="footer">
+        <button class="reset-btn" onclick="resetGame()">重置比分 (0 : 0)</button>
+    </div>
+
+    <script>
+        // 變數初始化
+        let scoreL = 0;
+        let scoreR = 0;
+        let maxScore = 21; // 預設21分
+        let isGameOver = false;
+
+        // 讀取 DOM 元素
+        const scoreDisplayL = document.getElementById('scoreLeft');
+        const scoreDisplayR = document.getElementById('scoreRight');
+        const sideL = document.getElementById('sideLeft');
+        const sideR = document.getElementById('sideRight');
+        const modeSelector = document.getElementById('gameMode');
+
+        // 更新畫面函數
+        function updateDisplay() {
+            scoreDisplayL.textContent = scoreL;
+            scoreDisplayR.textContent = scoreR;
+            
+            // 檢查是否達到設定分數
+            checkWinner();
+        }
+
+        // 加分函數
+        function addScore(side) {
+            if (isGameOver) return; // 如果比賽結束，停止加分
+
+            if (side === 'left') {
+                scoreL++;
+            } else {
+                scoreR++;
+            }
+            updateDisplay();
+        }
+
+        // 扣分函數 (需傳入 event 以阻止冒泡，避免觸發加分)
+        function minusScore(event, side) {
+            event.stopPropagation(); // 阻止點擊事件傳遞給父層 (防止同時加分)
+            
+            if (isGameOver) {
+                // 如果比賽結束，允許扣分以修正錯誤並恢復比賽狀態
+                isGameOver = false;
+                sideL.classList.remove('winner');
+                sideR.classList.remove('winner');
+            }
+
+            if (side === 'left' && scoreL > 0) {
+                scoreL--;
+            } else if (side === 'right' && scoreR > 0) {
+                scoreR--;
+            }
+            updateDisplay();
+        }
+
+        // 檢查勝利者
+        function checkWinner() {
+            maxScore = parseInt(modeSelector.value);
+            
+            // 簡單判定：誰先到達目標分數
+            // (若需要Deuce規則，可在此擴充，目前依需求僅做上限判定)
+            if (scoreL >= maxScore) {
+                isGameOver = true;
+                sideL.classList.add('winner');
+            } else if (scoreR >= maxScore) {
+                isGameOver = true;
+                sideR.classList.add('winner');
+            }
+        }
+
+        // 重置函數
+        function resetGame() {
+            scoreL = 0;
+            scoreR = 0;
+            isGameOver = false;
+            sideL.classList.remove('winner');
+            sideR.classList.remove('winner');
+            maxScore = parseInt(modeSelector.value); // 確保更新當前賽制
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>
