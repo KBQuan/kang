@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>題庫整理工具 - 色彩與順序優化版</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
+    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; background-color: #f8f9fa; color: #333; padding: 20px; }
+        .container { max-width: 950px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h1 { color: #1a73e8; text-align: center; margin-bottom: 25px; }
+        .section { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        label { font-weight: bold; display: block; margin-bottom: 8px; color: #1a73e8; }
+        .hint { font-size: 0.85em; color: #666; margin-bottom: 10px; display: block; }
+        textarea { width: 100%; height: 150px; padding: 12px; border: 1px solid #cbd5e0; border-radius: 8px; resize: vertical; box-sizing: border-box; }
+        input[type="file"], input[type="text"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 2px dashed #1a73e8; border-radius: 8px; box-sizing: border-box; background: #fdfdff; }
+        
+        /* 統計看板 */
+        .summary-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .summary-card { background: #fff; border: 1px solid #e0e0e0; padding: 15px; border-radius: 8px; text-align: center; }
+        .summary-card .count { font-size: 24px; font-weight: bold; color: #1a73e8; display: block; }
+        .summary-card.total { background: #1a73e8; color: white; }
+        .summary-card.total .count { color: white; }
+
+        .btn-group { text-align: center; margin: 25px 0; }
+        button { background-color: #1a73e8; color: white; border: none; padding: 12px 30px; font-size: 16px; border-radius: 6px; cursor: pointer; font-weight: 600; margin: 0 8px; }
+        button:hover { background-color: #1557b0; }
+        button.clear-btn { background-color: #dc3545; }
+        
+        #preview { background: #ffffff; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; min-height: 50px; max-height: 500px; overflow-y: auto; }
+        .export-section { display: flex; gap: 15px; align-items: center; background: #f1f8ff; padding: 20px; border-radius: 10px; margin-top: 20px; }
+        
+        /* 預覽顏色 */
+        .ans-red { color: #e74c3c; font-weight: bold; } /* 選擇題紅 */
+        .ans-blue { color: #3498db; font-weight: bold; } /* 填充題藍 */
+        .q-item { margin-bottom: 15px; border-bottom: 1px dashed #eee; padding-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📝 題庫自動整理系統 (色彩順序版)</h1>
+
+    <div class="section">
+        <label>1. 檔案匯入 (.txt, .docx)</label>
+        <input type="file" id="fileInput" accept=".txt, .docx" multiple onchange="handleFileUpload(event)">
+    </div>
+
+    <div class="section">
+        <label>2. 內容編輯</label>
+        <textarea id="inputText" placeholder="貼上題目內容..."></textarea>
+    </div>
+
+    <div class="btn-group">
+        <button onclick="processData()">🔄 開始整理與統計</button>
+        <button class="clear-btn" onclick="clearAll()">🧹 全部清除</button>
+    </div>
+
+    <div id="summaryContainer" class="summary-board" style="display: none;">
+        <div class="summary-card"><span id="cntZhMC" class="count">0</span><span class="label">中文選擇 (紅)</span></div>
+        <div class="summary-card"><span id="cntEnMC" class="count">0</span><span class="label">英文選擇 (紅)</span></div>
+        <div class="summary-card"><span id="cntZhFill" class="count">0</span><span class="label">中文填充 (藍)</span></div>
+        <div class="summary-card"><span id="cntEnFill" class="count">0</span><span class="label">英文填充 (藍)</span></div>
+        <div class="summary-card total"><span id="cntTotal" class="count">0</span><span class="label">總計題數</span></div>
+    </div>
+
+    <div class="section">
+        <label>3. 預覽 (紅=選擇, 藍=填充)</label>
+        <div id="preview">等待處理中...</div>
+    </div>
+
+    <div class="section export-section">
+        <input type="text" id="filename" placeholder="請輸入檔名" style="flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+        <button onclick="exportToDocx()">💾 下載 .docx 檔案</button>
+    </div>
+</div>
+
+<script>
+    let finalData = { zhMC: [], enMC: [], zhFill: [], enFill: [] };
+
+    async function handleFileUpload(event) {
+        const files = event.target.files;
+        let combinedText = "";
+        for (let file of files) {
+            if (file.name.endsWith('.docx')) {
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({arrayBuffer: arrayBuffer});
+                combinedText += result.value + "\n\n";
+            } else {
+                combinedText += await file.text() + "\n\n";
+            }
+        }
+        document.getElementById('inputText').value += (document.getElementById('inputText').value ? '\n\n' : '') + combinedText;
+        event.target.value = '';
+    }
+
+    function processData() {
+        const rawText = document.getElementById('inputText').value;
+        if (!rawText.trim()) return alert('請輸入資料！');
+
+        let parsedQuestions = new Map();
+        const parts = rawText.split(/正確答案：/g);
+
+        for (let i = 0; i < parts.length - 1; i++) {
+            let question = "";
+            let answer = "";
+            
+            const p = parts[i];
+            const yourAnsIdx = p.lastIndexOf('你的答案：');
+            if (yourAnsIdx !== -1) {
+                const titleIdx = p.lastIndexOf('題目：', yourAnsIdx);
+                if (titleIdx !== -1) question = p.substring(titleIdx + 3, yourAnsIdx);
+            } else {
+                const matches = [...p.matchAll(/(?:^|\n|\r)\s*\(\d+\)\s*/g)];
+                if (matches.length > 0) {
+                    const lastMatch = matches[matches.length - 1];
+                    question = p.substring(lastMatch.index + lastMatch[0].length);
+                }
+            }
+            question = question.replace(/\s+/g, ' ').replace(/\[_+1_+\]/g, '[1]').trim();
+
+            const nextP = parts[i + 1];
+            const ansEndMatch = nextP.match(/得分：|題目：|(?:\n|\r)\s*\(\d+\)|一、|二、|三、|四、/);
+            let rawAnswer = ansEndMatch ? nextP.substring(0, ansEndMatch.index) : nextP;
+            answer = rawAnswer.split(/\r?\n/).map(l => l.trim()).filter(l => l).join(', ');
+
+            if (question && answer && !parsedQuestions.has(question)) {
+                parsedQuestions.set(question, answer);
+            }
+        }
+
+        finalData = { zhMC: [], enMC: [], zhFill: [], enFill: [] };
+        parsedQuestions.forEach((ans, q) => {
+            const isZh = /[\u4e00-\u9fa5]/.test(q); 
+            const isFill = /\[1\]/.test(q);             
+            if (isZh && isFill) finalData.zhFill.push({ q, ans });
+            else if (isZh && !isFill) finalData.zhMC.push({ q, ans });
+            else if (!isZh && isFill) finalData.enFill.push({ q, ans });
+            else finalData.enMC.push({ q, ans });
+        });
+
+        const sortFn = (a, b) => a.q.localeCompare(b.q, 'en', { sensitivity: 'base' });
+        Object.values(finalData).forEach(arr => arr.sort(sortFn));
+
+        updateSummary();
+        renderPreview();
+    }
+
+    function updateSummary() {
+        document.getElementById('cntZhMC').innerText = finalData.zhMC.length;
+        document.getElementById('cntEnMC').innerText = finalData.enMC.length;
+        document.getElementById('cntZhFill').innerText = finalData.zhFill.length;
+        document.getElementById('cntEnFill').innerText = finalData.enFill.length;
+        document.getElementById('cntTotal').innerText = finalData.zhMC.length + finalData.enMC.length + finalData.zhFill.length + finalData.enFill.length;
+        document.getElementById('summaryContainer').style.display = 'grid';
+    }
+
+    function renderPreview() {
+        let html = "";
+        const mapping = [
+            { t: "一、 中文選擇", d: finalData.zhMC, colorClass: "ans-red" },
+            { t: "二、 英文選擇", d: finalData.enMC, colorClass: "ans-red" },
+            { t: "三、 中文填充", d: finalData.zhFill, colorClass: "ans-blue" },
+            { t: "四、 英文填充", d: finalData.enFill, colorClass: "ans-blue" }
+        ];
+
+        mapping.forEach(sec => {
+            if (sec.d.length > 0) {
+                html += `<h3 style="border-left: 5px solid #1a73e8; padding-left: 10px;">${sec.t} (共 ${sec.d.length} 題)</h3>`;
+                sec.d.forEach((item, idx) => {
+                    html += `<div class="q-item">(${idx+1}) ${item.q}<br><span class="${sec.colorClass}">正確答案：${item.ans}</span></div>`;
+                });
+            }
+        });
+        document.getElementById('preview').innerHTML = html || "尚未處理題目。";
+    }
+
+    async function exportToDocx() {
+        const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = window.docx;
+        let filename = document.getElementById('filename').value.trim() || '題庫整理';
+        const children = [];
+
+        // 頁首統計
+        const total = finalData.zhMC.length + finalData.enMC.length + finalData.zhFill.length + finalData.enFill.length;
+        children.push(new Paragraph({ text: "題庫匯整報告", heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER }));
+        
+        const summaryText = [
+            `中文選擇：${finalData.zhMC.length} 題`,
+            `英文選擇：${finalData.enMC.length} 題`,
+            `中文填充：${finalData.zhFill.length} 題`,
+            `英文填充：${finalData.enFill.length} 題`,
+            `總計題數：${total} 題`
+        ];
+        summaryText.forEach(line => children.push(new Paragraph({ children: [new TextRun({ text: line, size: 24 })], alignment: AlignmentType.CENTER })));
+        children.push(new Paragraph({ text: "", spacing: { after: 300 } }));
+
+        // 題目內容
+        const mapping = [
+            { t: "一、 中文選擇", d: finalData.zhMC, color: "FF0000" }, // 紅
+            { t: "二、 英文選擇", d: finalData.enMC, color: "FF0000" }, // 紅
+            { t: "三、 中文填充", d: finalData.zhFill, color: "0000FF" }, // 藍
+            { t: "四、 英文填充", d: finalData.enFill, color: "0000FF" }  // 藍
+        ];
+
+        mapping.forEach(sec => {
+            if (sec.d.length > 0) {
+                children.push(new Paragraph({ text: `${sec.t} (共 ${sec.d.length} 題)`, heading: HeadingLevel.HEADING_2, spacing: { before: 300, after: 150 } }));
+                sec.d.forEach((item, idx) => {
+                    children.push(new Paragraph({ children: [new TextRun({ text: `(${idx+1}) ${item.q}`, size: 28 })], spacing: { after: 80 } }));
+                    children.push(new Paragraph({ children: [
+                        new TextRun({ text: "正確答案：", size: 28, bold: true }),
+                        new TextRun({ text: item.ans, size: 28, bold: true, color: sec.color })
+                    ], spacing: { after: 250 } }));
+                });
+            }
+        });
+
+        if (total === 0) return alert('請先執行整理！');
+        const doc = new Document({ sections: [{ children }] });
+        const blob = await Packer.toBlob(doc);
+        saveAs(blob, `${filename}.docx`);
+    }
+
+    function clearAll() {
+        if(confirm('確定清空？')) {
+            document.getElementById('inputText').value = '';
+            document.getElementById('preview').innerHTML = '等待處理中...';
+            document.getElementById('summaryContainer').style.display = 'none';
+            finalData = { zhMC: [], enMC: [], zhFill: [], enFill: [] };
+        }
+    }
+</script>
+</body>
+</html>
