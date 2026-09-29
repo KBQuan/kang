@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>小家庭旅遊 - 臺中親子綠意與蔬食一日遊手帳</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Zen Maru Gothic for Japanese illustration style font feel -->
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background-color: #fcfaf2; /* Warm cream paper color */
+            color: #5c524b;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .jp-card {
+            background-color: #ffffff;
+            border: 2px solid #e8dec8;
+            box-shadow: 0 4px 20px rgba(184, 163, 142, 0.12);
+            transition: transform 0.2s ease;
+        }
+        .jp-card:active {
+            transform: scale(0.99);
+        }
+        .jp-tag {
+            background-color: #f4ebd9;
+            color: #8c7355;
+        }
+        .jp-btn {
+            background-color: #d4a373;
+            color: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .jp-btn:hover, .jp-btn:active {
+            background-color: #bc6c25;
+        }
+        .jp-parking-box {
+            background-color: #fdf8f2;
+            border: 1px dashed #d4a373;
+        }
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #fcfaf2;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.08);
+        }
+    </style>
+</head>
+<body class="bg-[#f2ece1]">
+
+    <div class="app-container flex flex-col justify-between overflow-x-hidden">
+
+        <header class="bg-[#f4ebd9] pt-8 pb-6 px-6 rounded-b-[35px] border-b-2 border-[#e8dec8] relative text-center sticky top-0 z-40 backdrop-blur-md bg-opacity-95">
+            <div class="absolute top-3 right-4 bg-white/90 px-3 py-1 rounded-full text-xs font-bold text-[#bc6c25] border border-[#d4a373] shadow-sm">
+                <i class="fa-solid fa-seedling text-[#dda15e] mr-1"></i> 親子一日遊
+            </div>
+            <div class="inline-block bg-[#dda15e]/20 text-[#bc6c25] px-3 py-0.5 rounded-full text-xs font-bold mb-2">
+                👨‍👩‍👦 爸媽 + 12歲哥哥與8歲弟弟
+            </div>
+            <h1 class="text-2xl font-bold tracking-wider text-[#4a3f35]">臺中綠意文創與蔬食手帳</h1>
+            <p class="text-xs text-[#8c7355] mt-1">兼顧大人放鬆與小朋友腸胃健康的慢活療癒之旅</p>
+            
+            <!-- Family Member Badge Bar -->
+            <div class="flex justify-center gap-2 mt-4 text-[11px] text-[#7a6855]">
+                <span class="bg-white/80 px-2.5 py-1 rounded-full border border-[#e8dec8]">爸爸 (32)</span>
+                <span class="bg-white/80 px-2.5 py-1 rounded-full border border-[#e8dec8]">媽媽 (30)</span>
+                <span class="bg-white/80 px-2.5 py-1 rounded-full border border-[#e8dec8]">哥哥 (12)</span>
+                <span class="bg-white/80 px-2.5 py-1 rounded-full border border-[#e8dec8]">弟弟 (8)</span>
+            </div>
+        </header>
+
+        <main class="flex-grow px-5 py-6 mb-24">
+            
+            <div class="space-y-6">
+                <div class="flex items-center justify-between bg-[#fff6e9] p-3 rounded-2xl border border-[#e8dec8] shadow-sm">
+                    <span class="text-xs font-bold text-[#bc6c25]"><i class="fa-solid fa-route mr-1"></i> 精彩行程總覽</span>
+                    <span class="text-xs text-[#8c7355]">草悟道 ➔ 斐得蔬食 ➔ 審計新村 ➔ 秋紅谷 ➔ 一中蔬食</span>
+                </div>
+
+                <!-- Item 1: 草悟道 -->
+                <div class="jp-card p-4 rounded-3xl relative">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <span class="jp-tag text-[10px] font-bold px-2.5 py-0.5 rounded-full">09:30 - 11:30 ｜ 景點 01</span>
+                            <h3 class="font-bold text-lg text-[#3a3028] mt-1">草悟道綠意散步</h3>
+                        </div>
+                        <span class="text-xs bg-[#f4ebd9] text-[#8c7355] px-2 py-1 rounded-xl font-bold">戶外親子</span>
+                    </div>
+                    <p class="text-xs text-[#6e6359] mt-2 leading-relaxed">
+                        散步、欣賞綠意與公共藝術，享受悠閒的早晨時光。適合全家散步，步調輕鬆，對8歲弟弟的胃部沒有負擔。
+                    </p>
+                    <div class="jp-parking-box mt-3 p-2.5 rounded-xl flex items-center justify-between text-[11px] text-[#8c7355]">
+                        <span><i class="fa-solid fa-square-parking text-[#bc6c25] mr-1">|</i> <b>停車：</b> 草悟道廣場地下停車場 (每小時 20-40 元)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=草悟道廣場地下停車場" target="_blank" class="text-[#bc6c25] font-bold underline whitespace-nowrap ml-2">車位地圖</a>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-[#f4ebd9] flex items-center justify-between">
+                        <span class="text-[11px] text-[#8c7355]"><i class="fa-regular fa-clock mr-1"></i>停留：2小時</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=臺中草悟道" target="_blank" class="jp-btn text-xs px-3.5 py-2 rounded-xl font-bold flex items-center gap-1 shadow-sm">
+                            <i class="fa-solid fa-location-arrow"></i> Google 地圖導航
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Item 2: 斐得蔬食 -->
+                <div class="jp-card p-4 rounded-3xl relative border-l-4 border-l-[#bc6c25]">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <span class="bg-[#bc6c25] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">11:30 - 13:30 ｜ 精緻午餐</span>
+                            <h3 class="font-bold text-lg text-[#3a3028] mt-1">斐得蔬食 Verdure (勤美店)</h3>
+                        </div>
+                        <span class="text-xs bg-[#fff0e6] text-[#bc6c25] px-2 py-1 rounded-xl font-bold">親子友善</span>
+                    </div>
+                    <p class="text-xs text-[#6e6359] mt-2 leading-relaxed">
+                        提供精緻且多元的蔬食料理，口味選擇多，亦能為弟弟挑選較為清淡、溫和的品項。全素/蔬食友善，環境舒適適合小孩。
+                    </p>
+                    <div class="jp-parking-box mt-3 p-2.5 rounded-xl flex items-center justify-between text-[11px] text-[#8c7355]">
+                        <span><i class="fa-solid fa-square-parking text-[#bc6c25] mr-1">|</i> <b>停車：</b> 勤美誠品綠園道地下停車場 (每小時 40-50 元)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=勤美誠品綠園道地下停車場" target="_blank" class="text-[#bc6c25] font-bold underline whitespace-nowrap ml-2">車位地圖</a>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-[#f4ebd9] flex items-center justify-between">
+                        <span class="text-[11px] text-[#bc6c25] font-bold"><i class="fa-solid fa-utensils mr-1"></i>健康美味</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=斐得蔬食勤美店" target="_blank" class="jp-btn text-xs px-3.5 py-2 rounded-xl font-bold flex items-center gap-1 shadow-sm">
+                            <i class="fa-solid fa-location-arrow"></i> Google 地圖導航
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Item 3: 審計新村 -->
+                <div class="jp-card p-4 rounded-3xl relative">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <span class="jp-tag text-[10px] font-bold px-2.5 py-0.5 rounded-full">13:40 - 15:30 ｜ 文創手作</span>
+                            <h3 class="font-bold text-lg text-[#3a3028] mt-1">審計新村文創聚落</h3>
+                        </div>
+                        <span class="text-xs bg-[#f4ebd9] text-[#8c7355] px-2 py-1 rounded-xl font-bold">老宅聚落</span>
+                    </div>
+                    <p class="text-xs text-[#6e6359] mt-2 leading-relaxed">
+                        充滿文創氣息的老宅聚落，可以逛逛特色小店、手作小物與品嚐特色小點。哥哥和弟弟感受文創手作樂趣，大人悠閒拍照。
+                    </p>
+                    <div class="jp-parking-box mt-3 p-2.5 rounded-xl flex items-center justify-between text-[11px] text-[#8c7355]">
+                        <span><i class="fa-solid fa-square-parking text-[#bc6c25] mr-1">|</i> <b>停車：</b> 向上國中地下停車場 (每小時 20-30 元)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=向上國中地下停車場" target="_blank" class="text-[#bc6c25] font-bold underline whitespace-nowrap ml-2">車位地圖</a>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-[#f4ebd9] flex items-center justify-between">
+                        <span class="text-[11px] text-[#8c7355]"><i class="fa-regular fa-clock mr-1"></i>停留：1.8小時</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=審計新村" target="_blank" class="jp-btn text-xs px-3.5 py-2 rounded-xl font-bold flex items-center gap-1 shadow-sm">
+                            <i class="fa-solid fa-location-arrow"></i> Google 地圖導航
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Item 4: 秋紅谷景觀生態公園 -->
+                <div class="jp-card p-4 rounded-3xl relative">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <span class="jp-tag text-[10px] font-bold px-2.5 py-0.5 rounded-full">15:50 - 18:00 ｜ 生態散步</span>
+                            <h3 class="font-bold text-lg text-[#3a3028] mt-1">秋紅谷景觀生態公園</h3>
+                        </div>
+                        <span class="text-xs bg-[#f4ebd9] text-[#8c7355] px-2 py-1 rounded-xl font-bold">綠色峽谷</span>
+                    </div>
+                    <p class="text-xs text-[#6e6359] mt-2 leading-relaxed">
+                        城市中的綠色峽谷，在此散步、看魚、欣賞湖景，傍晚景色優美且涼爽。空間開闊清幽，非常適合帶小孩放鬆走動。
+                    </p>
+                    <div class="jp-parking-box mt-3 p-2.5 rounded-xl flex items-center justify-between text-[11px] text-[#8c7355]">
+                        <span><i class="fa-solid fa-square-parking text-[#bc6c25] mr-1">|</i> <b>停車：</b> 秋紅谷附設停車場或朝馬運動中心 (20-40元)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=秋紅谷景觀生態公園停車場" target="_blank" class="text-[#bc6c25] font-bold underline whitespace-nowrap ml-2">車位地圖</a>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-[#f4ebd9] flex items-center justify-between">
+                        <span class="text-[11px] text-[#8c7355]"><i class="fa-regular fa-clock mr-1"></i>停留：2小時</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=秋紅谷景觀生態公園" target="_blank" class="jp-btn text-xs px-3.5 py-2 rounded-xl font-bold flex items-center gap-1 shadow-sm">
+                            <i class="fa-solid fa-location-arrow"></i> Google 地圖導航
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Item 5: 一中商圈晚餐 -->
+                <div class="jp-card p-4 rounded-3xl relative border-l-4 border-l-[#bc6c25]">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <span class="bg-[#bc6c25] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">18:00 - 19:30 ｜ 溫和蔬食晚餐</span>
+                            <h3 class="font-bold text-lg text-[#3a3028] mt-1">一中商圈（菜市場 / 饗蔬職人）</h3>
+                        </div>
+                        <span class="text-xs bg-[#fff0e6] text-[#bc6c25] px-2 py-1 rounded-xl font-bold">腸胃友善</span>
+                    </div>
+                    <p class="text-xs text-[#6e6359] mt-2 leading-relaxed">
+                        提供美味且接受度高的蔬食料理。為弟弟選擇清淡好消化的湯麵或蔬菜料理，照顧腸胃，為完美一天畫下句點。
+                    </p>
+                    <div class="jp-parking-box mt-3 p-2.5 rounded-xl flex items-center justify-between text-[11px] text-[#8c7355]">
+                        <span><i class="fa-solid fa-square-parking text-[#bc6c25] mr-1">|</i> <b>停車：</b> 中興堂地下停車場 (每小時 30-40 元)</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=中興堂地下停車場" target="_blank" class="text-[#bc6c25] font-bold underline whitespace-nowrap ml-2">車位地圖</a>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-[#f4ebd9] flex items-center justify-between">
+                        <span class="text-[11px] text-[#bc6c25] font-bold"><i class="fa-solid fa-utensils mr-1"></i>溫暖湯麵</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=一中商圈饗蔬職人" target="_blank" class="jp-btn text-xs px-3.5 py-2 rounded-xl font-bold flex items-center gap-1 shadow-sm">
+                            <i class="fa-solid fa-location-arrow"></i> Google 地圖導航
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 bg-[#fdf8f0] p-4 rounded-3xl border border-[#e8dec8] text-center shadow-sm">
+                <h4 class="text-xs font-bold text-[#bc6c25] mb-1"><i class="fa-solid fa-heart mr-1"></i> 親子旅遊貼心提醒</h4>
+                <p class="text-[11px] text-[#8c7355] leading-relaxed">點擊各景點的「Google 地圖導航」或「車位地圖」即可直接連至地圖。預祝爸爸、媽媽與兩位寶貝哥哥弟弟擁有美好的日系質感旅程！</p>
+            </div>
+        </main>
+
+        <nav class="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto bg-white/95 backdrop-blur-md border-t border-[#e8dec8] py-3 px-6 flex justify-around items-center rounded-t-3xl shadow-2xl z-50">
+            <a href="https://www.google.com/maps/search/?api=1&query=臺中草悟道" target="_blank" class="flex flex-col items-center text-[#bc6c25] transition-all">
+                <i class="fa-solid fa-map-location-dot text-lg"></i>
+                <span class="text-[10px] font-bold mt-1">一鍵導航</span>
+            </a>
+            <button onclick="openInfoModal()" class="flex flex-col items-center text-[#a89988] transition-all">
+                <i class="fa-solid fa-circle-info text-lg"></i>
+                <span class="text-[10px] font-bold mt-1">家庭指南</span>
+            </button>
+            <a href="https://travel.taichung.gov.tw/zh-tw" target="_blank" class="flex flex-col items-center text-[#a89988] transition-all">
+                <i class="fa-solid fa-globe text-lg"></i>
+                <span class="text-[10px] font-bold mt-1">臺中旅遊網</span>
+            </a>
+        </nav>
+
+        <!-- Info Modal -->
+        <div id="infoModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center p-5 z-50">
+            <div class="bg-white rounded-3xl p-6 max-w-xs w-full shadow-2xl border-2 border-[#e8dec8] text-center">
+                <div class="w-12 h-12 bg-[#f4ebd9] text-[#bc6c25] rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+                    <i class="fa-solid fa-child-reaching"></i>
+                </div>
+                <h3 class="font-bold text-base text-[#3a3028]">小家庭親子漫步手帳 APP</h3>
+                <p class="text-xs text-[#6e6359] mt-2 leading-relaxed">
+                    專為爸爸（32）、媽媽（30）、哥哥（12）與弟弟（8）量身打造，結合綠意文創與溫和素食，享受愉快又安心的臺中慢活時光！
+                </p>
+                <button onclick="closeInfoModal()" class="mt-5 w-full jp-btn py-2.5 rounded-xl font-bold text-xs shadow-sm">
+                    我知道了
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function openInfoModal() {
+            document.getElementById('infoModal').classList.remove('hidden');
+            document.getElementById('infoModal').classList.add('flex');
+        }
+
+        function closeInfoModal() {
+            document.getElementById('infoModal').classList.remove('flex');
+            document.getElementById('infoModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
